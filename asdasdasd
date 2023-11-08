@@ -1,0 +1,80 @@
+.686
+.model flat
+extern __read : PROC
+extern __write : PROC
+extern _ExitProcess@4 : PROC
+public _main
+
+.data
+obszar db 20 dup (?)
+dziesiec dd 10 ; mnoznik
+dwadziescia dd 20 ; mnoznik
+osiem dd 8
+dwa dd 2
+dwanascie dd 12
+dekoder db '0123456789ABCDEFGHIJ'
+znaki db 20 dup (?)
+
+.code
+
+wczytaj_EAX PROC
+	pusha
+
+	push dword PTR 20
+	push dword PTR OFFSET obszar
+	push dword PTR 0 
+	call __read
+	add esp, 12
+
+	mov eax, 0
+	mov edx, 0
+	mov edi, OFFSET obszar
+
+pobieraj_znaki:
+	mov cl, [edi]
+	inc edi
+
+	sub cl, 10
+	je byl_enter
+
+	sub cl, 30H
+	movzx ecx, cl
+
+	; kopia
+	mov ebx, eax
+	mov esi, edx
+
+	;8
+	shl eax, 1
+	rcl edx, 1
+
+	shl eax, 1
+	rcl edx, 1
+
+	shl eax, 1
+	rcl edx, 1
+
+	shl ebx, 1
+	rcl esi, 1
+
+	add eax, ebx
+	adc edx, esi
+
+	add eax, ecx
+	adc edx,0
+
+	jmp pobieraj_znaki
+
+byl_enter:
+	popa
+	ret
+wczytaj_EAX ENDP
+
+_main PROC
+
+	call wczytaj_EAX
+
+	push 0
+	call _ExitProcess@4
+_main ENDP
+END
